@@ -10,6 +10,6 @@ COPY . /usr/src/app/
 ARG DATABASE_URL
 RUN diesel setup; \
     diesel migration run
-RUN cargo build --release
+RUN BIGI_BITS=512 cargo build --release
 
 CMD ROCKET_ENV=prod ./target/release/hash-storage
