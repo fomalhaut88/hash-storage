@@ -1,6 +1,4 @@
-FROM rust:1.33.0
-
-RUN rustup default nightly-2019-01-29
+FROM rustlang/rust:nightly
 
 WORKDIR /usr/src/app
 
