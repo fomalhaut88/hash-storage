@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  backend:
+    build: .
+    restart: always
+    ports:
+      - "60001:8000"
+    environment:
+      - DATABASE_URL=mysql://hash_storage:gooriruc2Al4eeSh@172.17.0.1:3306/hash_storage
