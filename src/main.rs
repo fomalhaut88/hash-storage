@@ -24,6 +24,12 @@ use block::Block;
 
 
 #[derive(Serialize, Deserialize)]
+pub struct ListInput {
+    pub public_key: String,
+}
+
+
+#[derive(Serialize, Deserialize)]
 pub struct GetInput {
     pub public_key: String,
     pub data_key: String,
@@ -45,6 +51,14 @@ pub struct DeleteInput {
     pub public_key: String,
     pub data_key: String,
     pub secret_signature: String,
+}
+
+
+#[post("/list", format = "application/json", data = "<input>")]
+fn list(input: Json<ListInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&input.public_key);
+    let records = Block::list(&conn, &public_key);
+    Ok(Json(json!(records)))
 }
 
 
@@ -134,6 +148,6 @@ fn delete(input: Json<DeleteInput>, conn: db::Connection) -> Result<Json<JsonVal
 fn main() {
     rocket::ignite()
         .manage(db::connect())
-        .mount("/api", routes![get, save, delete])
+        .mount("/api", routes![list, get, save, delete])
         .launch();
 }

@@ -22,6 +22,12 @@ pub struct Block {
 
 
 impl Block {
+    pub fn list(conn: &MysqlConnection, public_key: &Point) -> Vec<Self> {
+        block::table.filter(
+            block::public_key.eq(hex_from_point(public_key))
+        ).load(conn).unwrap()
+    }
+
     pub fn get(conn: &MysqlConnection, public_key: &Point,
                data_key: &Vec<u8>) -> Option<Self> {
         match block::table.filter(block::public_key.eq(hex_from_point(public_key)))
