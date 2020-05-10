@@ -17,14 +17,14 @@ pub fn generate_secret() -> Vec<u8> {
 }
 
 
-pub fn check_data_block_size(data_block: &Vec<u8>) -> bool {
+pub fn check_data_block_size(data_block: &String) -> bool {
     data_block.len() < 1048576  // 2^20 bytes (or 1 MB)
 }
 
 
 pub fn check_data_signature(public_key: &Point,
-                            data_key: &Vec<u8>,
-                            data_block: &Vec<u8>,
+                            data_key: &String,
+                            data_block: &String,
                             signature: &(Bigi, Bigi)) -> bool {
     let hash = {
         let mut hasher = Sha256::new();
@@ -47,11 +47,10 @@ pub fn check_secret_signature(public_key: &Point,
 
 #[cfg(test)]
 mod tests {
-    use bigi_ecc::mapping::Mapper;
-    use bigi_ecc::elgamal;
-    use bigi_ecc::ecdsa::build_signature;
-    use crate::utils::*;
     use super::*;
+    use test::Bencher;
+    use bigi_ecc::ecdsa::build_signature;
+    // use crate::utils::*;
 
     #[test]
     fn test_generate_secret() {
@@ -62,11 +61,11 @@ mod tests {
     #[test]
     fn test_check_data_block_size() {
         assert_eq!(
-            check_data_block_size(&vec![5; 100]),
+            check_data_block_size(&String::from_utf8(vec![65; 100]).unwrap()),
             true
         );
         assert_eq!(
-            check_data_block_size(&vec![5; 3000000]),
+            check_data_block_size(&String::from_utf8(vec![65; 3000000]).unwrap()),
             false
         );
     }
@@ -81,20 +80,8 @@ mod tests {
         let (private_key, public_key) = schema.generate_pair(&mut rng);
 
         // Initial data
-        let data_key = hex_to_bytes("20EFF6E29B0ABCE86454A675A5FB4D64F5F48A9B8BCFA4E483A61EB7D4C9B8FF");
-        let message = b"hash-storage";
-
-        // Encrypting data
-        let data_block = {
-            let mapper = Mapper::new(256);
-            let points = mapper.pack(&message.to_vec(), &schema.curve);
-            let (c1, c2) = elgamal::encrypt(&mut rng, &schema, &public_key, &points);
-            let mut res: Vec<u8> = hex_to_bytes(&hex_from_point(&c1));
-            for p in c2 {
-                res.extend(&hex_to_bytes(&hex_from_point(&p)));
-            }
-            res
-        };
+        let data_key: String = "My data key".to_string();
+        let data_block: String = "My shared data block".to_string();
 
         // Building signature
         let signature = {
@@ -105,6 +92,15 @@ mod tests {
 
             build_signature(&mut rng, &schema, &private_key, &hash)
         };
+
+        // let secret = generate_secret();
+        // println!("private_key = {:?}", hex_from_bigi(&private_key));
+        // println!("public_key = {:?}", hex_from_point(&public_key));
+        // println!("data_key = {:?}", data_key);
+        // println!("data_block = {:?}", data_block);
+        // println!("signature = {:?}", hex_from_bigi_pair(&signature));
+        // println!("secret = {:?}", hex_from_bytes(&secret));
+        // println!("secret_signature = {:?}", hex_from_bigi_pair(&build_signature(&mut rng, &schema, &private_key, &secret)));
 
         // Checking
         assert_eq!(
@@ -133,5 +129,65 @@ mod tests {
             check_secret_signature(&public_key, &secret, &secret_signature),
             true
         );
+    }
+
+    #[bench]
+    fn bench_generate_secret(b: &mut Bencher) {
+        b.iter(|| generate_secret());
+    }
+
+    #[bench]
+    fn bench_check_data_block_size(b: &mut Bencher) {
+        let data_block = &String::from_utf8(vec![65; 1000000]).unwrap();
+        b.iter(|| check_data_block_size(&data_block));
+    }
+
+    #[bench]
+    fn bench_check_data_signature(b: &mut Bencher) {
+        // Initialization
+        let mut rng = rand::thread_rng();
+        let schema = schemas::load_secp256k1();
+
+        // Generating keys
+        let (private_key, public_key) = schema.generate_pair(&mut rng);
+
+        // Initial data
+        let data_key: String = "My data key".to_string();
+        let data_block: String = "My shared data block".to_string();
+
+        // Building signature
+        let signature = {
+            let mut hasher = Sha256::new();
+            hasher.input(&data_key);
+            hasher.input(&data_block);
+            let hash = hasher.result().to_vec();
+
+            build_signature(&mut rng, &schema, &private_key, &hash)
+        };
+
+        // Benchmark
+        b.iter(||
+            check_data_signature(&public_key, &data_key,
+                                 &data_block, &signature)
+        );
+    }
+
+    #[bench]
+    fn bench_check_secret_signature(b: &mut Bencher) {
+        // Initialization
+        let mut rng = rand::thread_rng();
+        let schema = schemas::load_secp256k1();
+
+        // Generating keys
+        let (private_key, public_key) = schema.generate_pair(&mut rng);
+
+        // Initial data
+        let secret = generate_secret();
+
+        // Building secret_signature
+        let secret_signature = build_signature(&mut rng, &schema, &private_key, &secret);
+
+        // Benchmark
+        b.iter(|| check_secret_signature(&public_key, &secret, &secret_signature));
     }
 }

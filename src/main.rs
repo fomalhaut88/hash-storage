@@ -1,5 +1,7 @@
+#![feature(test)]
 #![feature(proc_macro_hygiene, decl_macro)]
 
+extern crate test;
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate diesel;
@@ -65,7 +67,7 @@ fn list(input: Json<ListInput>, conn: db::Connection) -> Result<Json<JsonValue>,
 #[post("/get", format = "application/json", data = "<input>")]
 fn get(input: Json<GetInput>, conn: db::Connection) -> Result<Json<Block>, Status> {
     let public_key = hex_to_point(&input.public_key);
-    let data_key = hex_to_bytes(&input.data_key);
+    let data_key = &input.data_key;
 
     match Block::get(&conn, &public_key, &data_key) {
         Some(record) => Ok(Json(record)),
@@ -77,8 +79,8 @@ fn get(input: Json<GetInput>, conn: db::Connection) -> Result<Json<Block>, Statu
 #[post("/save", format = "application/json", data = "<input>")]
 fn save(input: Json<SaveInput>, conn: db::Connection) -> Result<Json<Block>, Status> {
     let public_key = hex_to_point(&input.public_key);
-    let data_key = hex_to_bytes(&input.data_key);
-    let data_block = hex_to_bytes(&input.data_block);
+    let data_key = &input.data_key;
+    let data_block = &input.data_block;
     let signature = hex_to_bigi_pair(&input.signature);
 
     let secret_signature_option = if !input.secret_signature.is_empty() {
@@ -127,7 +129,7 @@ fn save(input: Json<SaveInput>, conn: db::Connection) -> Result<Json<Block>, Sta
 #[post("/delete", format = "application/json", data = "<input>")]
 fn delete(input: Json<DeleteInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
     let public_key = hex_to_point(&input.public_key);
-    let data_key = hex_to_bytes(&input.data_key);
+    let data_key = &input.data_key;
     let secret_signature = hex_to_bigi_pair(&input.secret_signature);
 
     match Block::get(&conn, &public_key, &data_key) {

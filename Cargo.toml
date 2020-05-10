@@ -1,6 +1,6 @@
 [package]
 name = "hash-storage"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Alexander <mail@fomalhaut.su>"]
 edition = "2018"
 
@@ -14,8 +14,8 @@ serde_derive = "1.0"
 diesel = { version = "1.4.4", features = ["mysql"] }
 r2d2 = "0.8.8"
 r2d2-diesel = "1.0"
-bigi = { git = "https://github.com/fomalhaut88/bigi.git", tag = "v0.2.1" }
-bigi-ecc = { git = "https://github.com/fomalhaut88/bigi-ecc.git", tag = "v0.2.1" }
+bigi = { git = "https://github.com/fomalhaut88/bigi.git", tag = "v0.3.3" }
+bigi-ecc = { git = "https://github.com/fomalhaut88/bigi-ecc.git", tag = "v0.3.0" }
 
 [dependencies.rocket_contrib]
 version = "0.4.4"
