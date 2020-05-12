@@ -58,7 +58,7 @@ pub struct DeleteInput {
 
 #[get("/version")]
 fn version() -> JsonValue {
-    json!({"success": env!("CARGO_PKG_VERSION")})
+    json!({"version": env!("CARGO_PKG_VERSION")})
 }
 
 
