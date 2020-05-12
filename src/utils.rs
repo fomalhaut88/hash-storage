@@ -55,7 +55,7 @@ pub fn hex_from_bigi_vec(v: &Vec<Bigi>) -> String {
 
 pub fn hex_to_point_vec(hex: &str) -> Vec<Point> {
     (0..hex.len()).step_by(2 * BIGI_HEX_LENGTH).map(
-        |i| hex_to_point(&hex[i..(2 * BIGI_HEX_LENGTH)])
+        |i| hex_to_point(&hex[i..(i + 2 * BIGI_HEX_LENGTH)])
     ).collect()
 }
 
