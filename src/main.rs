@@ -56,6 +56,12 @@ pub struct DeleteInput {
 }
 
 
+#[get("/version")]
+fn version() -> JsonValue {
+    json!({"success": env!("CARGO_PKG_VERSION")})
+}
+
+
 #[post("/list", format = "application/json", data = "<input>")]
 fn list(input: Json<ListInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
     let public_key = hex_to_point(&input.public_key);
@@ -150,6 +156,6 @@ fn delete(input: Json<DeleteInput>, conn: db::Connection) -> Result<Json<JsonVal
 fn main() {
     rocket::ignite()
         .manage(db::connect())
-        .mount("/api", routes![list, get, save, delete])
+        .mount("/api", routes![version, list, get, save, delete])
         .launch();
 }
