@@ -3,7 +3,7 @@ table! {
         id -> Unsigned<Integer>,
         public_key -> Varchar,
         data_key -> Varchar,
-        data_block -> Text,
+        data_block -> Mediumtext,
         signature -> Varchar,
         secret -> Varchar,
     }
