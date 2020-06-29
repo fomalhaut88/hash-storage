@@ -34,7 +34,7 @@ impl Block {
     pub fn groups(conn: &MysqlConnection, public_key: &Point) -> Vec<String> {
         block::table.filter(
             block::public_key.eq(hex_from_point(public_key))
-        ).select(block::data_group).load(conn).unwrap()
+        ).select(block::data_group).distinct().load(conn).unwrap()
     }
 
     pub fn keys(conn: &MysqlConnection, public_key: &Point,
