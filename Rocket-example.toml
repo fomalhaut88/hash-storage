@@ -1,7 +1,5 @@
 [prod]
 address = "0.0.0.0"
 port = 8000
-workers = 8
 log = "critical"
-secret_key = "VuR/6abbs/yzfQJUiFtEUT4YM1GO2gem/iMuJYKDjLo="
 limits = { forms = 32768 }
