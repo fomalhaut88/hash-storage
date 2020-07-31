@@ -25,26 +25,7 @@ use crypto::*;
 use block::Block;
 
 
-#[derive(Serialize, Deserialize)]
-pub struct PublicKeyInput {
-    pub public_key: String,
-}
-
-
-#[derive(Serialize, Deserialize)]
-pub struct GroupInput {
-    pub public_key: String,
-    pub data_group: String,
-}
-
-
-#[derive(Serialize, Deserialize)]
-pub struct GetInput {
-    pub public_key: String,
-    pub data_group: String,
-    pub data_key: String,
-}
-
+/* Data structures */
 
 #[derive(Serialize, Deserialize)]
 pub struct SaveInput {
@@ -58,11 +39,10 @@ pub struct SaveInput {
 }
 
 
+/* API methods */
+
 #[derive(Serialize, Deserialize)]
 pub struct DeleteInput {
-    pub public_key: String,
-    pub data_group: String,
-    pub data_key: String,
     pub secret_signature: String,
 }
 
@@ -73,46 +53,41 @@ fn version() -> JsonValue {
 }
 
 
-#[post("/check", format = "application/json", data = "<input>")]
-fn check(input: Json<PublicKeyInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
-    let public_key = hex_to_point(&input.public_key);
+#[get("/check/<public_key_hex>")]
+fn check(public_key_hex: String, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     let exists = Block::check(&conn, &public_key);
     Ok(Json(json!({"exists": exists})))
 }
 
 
-#[post("/groups", format = "application/json", data = "<input>")]
-fn groups(input: Json<PublicKeyInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
-    let public_key = hex_to_point(&input.public_key);
+#[get("/groups/<public_key_hex>")]
+fn groups(public_key_hex: String, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     let records = Block::groups(&conn, &public_key);
     Ok(Json(json!(records)))
 }
 
 
-#[post("/keys", format = "application/json", data = "<input>")]
-fn keys(input: Json<GroupInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
-    let public_key = hex_to_point(&input.public_key);
-    let data_group = &input.data_group;
+#[get("/keys/<public_key_hex>/<data_group>")]
+fn keys(public_key_hex: String, data_group: String, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     let records = Block::keys(&conn, &public_key, &data_group);
     Ok(Json(json!(records)))
 }
 
 
-#[post("/list", format = "application/json", data = "<input>")]
-fn list(input: Json<GroupInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
-    let public_key = hex_to_point(&input.public_key);
-    let data_group = &input.data_group;
+#[get("/list/<public_key_hex>/<data_group>")]
+fn list(public_key_hex: String, data_group: String, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     let records = Block::list(&conn, &public_key, &data_group);
     Ok(Json(json!(records)))
 }
 
 
-#[post("/get", format = "application/json", data = "<input>")]
-fn get(input: Json<GetInput>, conn: db::Connection) -> Result<Json<Block>, Status> {
-    let public_key = hex_to_point(&input.public_key);
-    let data_group = &input.data_group;
-    let data_key = &input.data_key;
-
+#[get("/get/<public_key_hex>/<data_group>/<data_key>")]
+fn get(public_key_hex: String, data_group: String, data_key: String, conn: db::Connection) -> Result<Json<Block>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     match Block::get(&conn, &public_key, &data_group, &data_key) {
         Some(record) => Ok(Json(record)),
         None => Err(Status::NotFound)
@@ -172,11 +147,9 @@ fn save(input: Json<SaveInput>, conn: db::Connection) -> Result<Json<Block>, Sta
 }
 
 
-#[post("/delete", format = "application/json", data = "<input>")]
-fn delete(input: Json<DeleteInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
-    let public_key = hex_to_point(&input.public_key);
-    let data_group = &input.data_group;
-    let data_key = &input.data_key;
+#[post("/delete/<public_key_hex>/<data_group>/<data_key>", format = "application/json", data = "<input>")]
+fn delete(public_key_hex: String, data_group: String, data_key: String, input: Json<DeleteInput>, conn: db::Connection) -> Result<Json<JsonValue>, Status> {
+    let public_key = hex_to_point(&public_key_hex);
     let secret_signature = hex_to_bigi_pair(&input.secret_signature);
 
     match Block::get(&conn, &public_key, &data_group, &data_key) {
@@ -198,7 +171,7 @@ fn main() {
     rocket::ignite()
         .manage(db::connect())
         .mount("/", routes![
-            version, check, groups, keys, list, get, save, delete
+            version, check, groups, keys, list, get, save, delete,
         ])
         .launch();
 }

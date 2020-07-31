@@ -6,20 +6,20 @@ use rocket::{Request, State, Outcome};
 use r2d2;
 use r2d2_diesel::ConnectionManager;
 
-use diesel::mysql::MysqlConnection;
+use diesel::sqlite::SqliteConnection;
 
 
-pub type Pool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
+pub type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 static DATABASE_URL: &'static str = env!("DATABASE_URL");
 
 
 pub fn connect() -> Pool {
-    let manager = ConnectionManager::<MysqlConnection>::new(DATABASE_URL);
+    let manager = ConnectionManager::<SqliteConnection>::new(DATABASE_URL);
     r2d2::Pool::builder().build(manager).expect("Failed to create pool")
 }
 
 
-pub struct Connection(pub r2d2::PooledConnection<ConnectionManager<MysqlConnection>>);
+pub struct Connection(pub r2d2::PooledConnection<ConnectionManager<SqliteConnection>>);
 
 
 impl<'a, 'r> FromRequest<'a, 'r> for Connection {
@@ -36,7 +36,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Connection {
 
 
 impl Deref for Connection {
-    type Target = MysqlConnection;
+    type Target = SqliteConnection;
 
     fn deref(&self) -> &Self::Target {
         &self.0

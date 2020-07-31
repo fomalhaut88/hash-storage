@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 EXPOSE 8000
 
-RUN cargo install diesel_cli --no-default-features --features mysql
+RUN cargo install diesel_cli --no-default-features --features sqlite
 
 COPY . /usr/src/app/
 ARG DATABASE_URL
