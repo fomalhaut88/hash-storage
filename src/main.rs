@@ -39,13 +39,13 @@ pub struct SaveInput {
 }
 
 
-/* API methods */
-
 #[derive(Serialize, Deserialize)]
 pub struct DeleteInput {
     pub secret_signature: String,
 }
 
+
+/* API methods */
 
 #[get("/version")]
 fn version() -> JsonValue {
